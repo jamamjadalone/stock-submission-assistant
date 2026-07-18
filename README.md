@@ -128,6 +128,8 @@ pyinstaller --name StockSubmissionAssistant --onefile --windowed ^
   --hidden-import fitz --hidden-import cv2 gui\app.py
 ```
 
+> If `pyinstaller` is not recognized as a command, use `python -m PyInstaller` instead (same tool, doesn't depend on PATH).
+
 ## Project structure
 
 ```
