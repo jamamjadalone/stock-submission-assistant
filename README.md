@@ -91,8 +91,35 @@ All of the above require either a live connection to a marketplace's private ser
 
 ## Screenshots
 
-> Add your own screenshots to `assets/` and reference them here, e.g.:
-> `![Vector module screenshot](assets/screenshot-vector.png)`
+### Vector Module (AI / EPS)
+
+Validate vector artwork against stock marketplace requirements and receive detailed compatibility results along with auto-fix suggestions.
+
+![Vector Module](assets/screenshot-vector.png)
+
+---
+
+### Marketplace Compatibility Checks
+
+See how your artwork performs across supported stock marketplaces, including pass/fail status and minimum megapixel requirements.
+
+![Marketplace Compatibility](assets/screenshot-marketplace.png)
+
+---
+
+### Size & Megapixel Calculator
+
+Quickly calculate whether your artwork dimensions meet common stock submission requirements before exporting your files.
+
+![Megapixel Calculator](assets/screenshot-calculator.png)
+
+---
+
+### Batch Checker
+
+Validate multiple files at once and export the results as a CSV report for faster stock submission workflows.
+
+![Batch Checker](assets/screenshot-batch.png)
 
 ## Installation
 
