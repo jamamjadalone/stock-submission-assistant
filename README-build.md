@@ -8,6 +8,12 @@ Run these commands on a **Windows machine** with Python 3.10+ and the
 project's virtualenv active (PyInstaller must build on the target OS —
 you cannot cross-build a Windows .exe from Linux/macOS).
 
+> **Note:** If the `pyinstaller` command gives `'pyinstaller' is not
+> recognized as an internal or external command` (a common PATH issue on
+> Windows), use `python -m PyInstaller` instead of `pyinstaller` in every
+> command below — it calls the same tool without depending on PATH.
+> Example: `python -m PyInstaller --name StockSubmissionAssistant --onefile ...`
+
 ### 1. Install build tooling
 
 ```bat
