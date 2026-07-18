@@ -1,0 +1,28 @@
+{
+  "_note": "Static, publicly documented technical specs only. No moderation/acceptance logic. Verify on each platform periodically as these evolve. Every marketplace here publishes a 4MP minimum for photos and PNG/vector artwork.",
+  "adobe_stock": {
+    "photo_min_megapixels": 4.0,
+    "png_min_megapixels": 4.0,
+    "photo_max_megapixels": 100.0
+  },
+  "shutterstock": {
+    "photo_min_megapixels": 4.0,
+    "png_min_megapixels": 4.0
+  },
+  "freepik": {
+    "photo_min_megapixels": 4.0,
+    "png_min_megapixels": 4.0
+  },
+  "vecteezy": {
+    "photo_min_megapixels": 4.0,
+    "png_min_megapixels": 4.0
+  },
+  "depositphotos": {
+    "photo_min_megapixels": 4.0,
+    "png_min_megapixels": 4.0
+  },
+  "dreamstime": {
+    "photo_min_megapixels": 4.0,
+    "png_min_megapixels": 4.0
+  }
+}
