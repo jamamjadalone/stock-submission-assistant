@@ -476,6 +476,180 @@ class ReportsTab(ctk.CTkFrame):
         messagebox.showinfo("Saved", f"Report saved to:\n{path}")
 
 
+class CalculatorTab(ctk.CTkFrame):
+    """A quick 'will this size meet 4MP?' calculator — plan your artwork
+    dimensions BEFORE you create the file, instead of finding out after.
+    Modeled after Illustrator's New Document width/height/orientation UI.
+    """
+
+    TARGET_MP = 4.0
+
+    def __init__(self, master):
+        super().__init__(master, fg_color="transparent")
+        self._updating = False
+
+        wrapper = ctk.CTkFrame(self, fg_color="transparent")
+        wrapper.pack(expand=True, fill="both", padx=20, pady=20)
+
+        ctk.CTkLabel(wrapper, text="📐  Size & Megapixel Calculator", font=ctk.CTkFont(size=22, weight="bold")).pack(anchor="w", pady=(0, 4))
+        ctk.CTkLabel(wrapper, text="Plan your artwork size before you even open Illustrator/Photoshop — see instantly whether it clears the 4MP minimum most marketplaces require.",
+                     text_color="gray", anchor="w", wraplength=700, justify="left").pack(anchor="w", pady=(0, 20))
+
+        card = ctk.CTkFrame(wrapper, fg_color="#1f1f1f", corner_radius=14)
+        card.pack(fill="x")
+
+        grid = ctk.CTkFrame(card, fg_color="transparent")
+        grid.pack(fill="x", padx=30, pady=30)
+
+        # --- Width ---
+        ctk.CTkLabel(grid, text="Width", text_color="#8ab4f8", font=ctk.CTkFont(size=13)).grid(row=0, column=0, sticky="w", pady=(0, 4))
+        self.width_var = ctk.StringVar(value="4000")
+        width_entry = ctk.CTkEntry(grid, textvariable=self.width_var, width=160, height=42, font=ctk.CTkFont(size=16))
+        width_entry.grid(row=1, column=0, sticky="w", padx=(0, 10))
+        ctk.CTkLabel(grid, text="px", text_color="gray").grid(row=1, column=1, sticky="w")
+
+        # --- Height ---
+        ctk.CTkLabel(grid, text="Height", text_color="#8ab4f8", font=ctk.CTkFont(size=13)).grid(row=2, column=0, sticky="w", pady=(16, 4))
+        self.height_var = ctk.StringVar(value="4000")
+        height_entry = ctk.CTkEntry(grid, textvariable=self.height_var, width=160, height=42, font=ctk.CTkFont(size=16))
+        height_entry.grid(row=3, column=0, sticky="w", padx=(0, 10))
+        ctk.CTkLabel(grid, text="px", text_color="gray").grid(row=3, column=1, sticky="w")
+
+        # --- Orientation ---
+        ctk.CTkLabel(grid, text="Orientation", text_color="#8ab4f8", font=ctk.CTkFont(size=13)).grid(row=0, column=2, sticky="w", padx=(40, 0), pady=(0, 4))
+        orient_row = ctk.CTkFrame(grid, fg_color="transparent")
+        orient_row.grid(row=1, column=2, sticky="w", padx=(40, 0))
+        self.portrait_btn = ctk.CTkButton(orient_row, text="📱  Portrait", width=110, height=42,
+                                           command=lambda: self._set_orientation("portrait"))
+        self.portrait_btn.pack(side="left", padx=(0, 6))
+        self.landscape_btn = ctk.CTkButton(orient_row, text="🖥️  Landscape", width=120, height=42,
+                                            fg_color="#2b2b2b", hover_color="#3a3a3a",
+                                            command=lambda: self._set_orientation("landscape"))
+        self.landscape_btn.pack(side="left")
+
+        swap_btn = ctk.CTkButton(grid, text="🔄  Swap W ↔ H", width=140, height=32,
+                                  fg_color="#2b2b2b", hover_color="#3a3a3a", command=self._swap)
+        swap_btn.grid(row=3, column=2, sticky="w", padx=(40, 0), pady=(6, 0))
+
+        # --- Target MP selector ---
+        ctk.CTkLabel(grid, text="Target minimum", text_color="#8ab4f8", font=ctk.CTkFont(size=13)).grid(row=0, column=3, sticky="w", padx=(40, 0), pady=(0, 4))
+        self.target_var = ctk.StringVar(value="4.0 MP (standard)")
+        target_menu = ctk.CTkOptionMenu(grid, values=["4.0 MP (standard)", "1.0 MP", "8.0 MP", "16.0 MP"],
+                                         variable=self.target_var, width=180, height=42,
+                                         command=lambda _: self._recalculate())
+        target_menu.grid(row=1, column=3, sticky="w", padx=(40, 0))
+
+        # --- Result display ---
+        result_card = ctk.CTkFrame(wrapper, fg_color="#15201a", corner_radius=12, border_width=1, border_color="#2d5c43")
+        result_card.pack(fill="x", pady=(20, 0))
+
+        self.mp_label = ctk.CTkLabel(result_card, text="16.00 MP", font=ctk.CTkFont(size=36, weight="bold"), text_color="#3ddc84")
+        self.mp_label.pack(pady=(20, 4))
+
+        self.status_label = ctk.CTkLabel(result_card, text="", font=ctk.CTkFont(size=14, weight="bold"))
+        self.status_label.pack(pady=(0, 4))
+
+        self.detail_label = ctk.CTkLabel(result_card, text="", text_color="gray", wraplength=680, justify="center")
+        self.detail_label.pack(pady=(0, 20))
+
+        # --- Quick-fix suggestion (shown only when below target) ---
+        self.suggestion_frame = ctk.CTkFrame(wrapper, fg_color="transparent")
+        self.suggestion_frame.pack(fill="x", pady=(12, 0))
+
+        self._orientation = "landscape"
+        self.width_var.trace_add("write", lambda *a: self._recalculate())
+        self.height_var.trace_add("write", lambda *a: self._recalculate())
+        self._set_orientation("landscape")
+
+    def _set_orientation(self, mode):
+        self._orientation = mode
+        if mode == "portrait":
+            self.portrait_btn.configure(fg_color="#3ddc84", text_color="#101010", hover_color="#4de896")
+            self.landscape_btn.configure(fg_color="#2b2b2b", text_color="white", hover_color="#3a3a3a")
+            self._orient_to(portrait=True)
+        else:
+            self.landscape_btn.configure(fg_color="#3ddc84", text_color="#101010", hover_color="#4de896")
+            self.portrait_btn.configure(fg_color="#2b2b2b", text_color="white", hover_color="#3a3a3a")
+            self._orient_to(portrait=False)
+
+    def _orient_to(self, portrait: bool):
+        try:
+            w = float(self.width_var.get() or 0)
+            h = float(self.height_var.get() or 0)
+        except ValueError:
+            return
+        if portrait and w > h:
+            self._swap()
+        elif not portrait and h > w:
+            self._swap()
+        else:
+            self._recalculate()
+
+    def _swap(self):
+        w, h = self.width_var.get(), self.height_var.get()
+        self._updating = True
+        self.width_var.set(h)
+        self.height_var.set(w)
+        self._updating = False
+        self._recalculate()
+
+    def _recalculate(self):
+        if self._updating:
+            return
+        try:
+            w = float(self.width_var.get() or 0)
+            h = float(self.height_var.get() or 0)
+        except ValueError:
+            self.mp_label.configure(text="—")
+            self.status_label.configure(text="Enter valid numbers", text_color="gray")
+            self.detail_label.configure(text="")
+            return
+
+        target_str = self.target_var.get()
+        target_mp = float(target_str.split(" ")[0])
+
+        mp = (w * h) / 1_000_000
+        self.mp_label.configure(text=f"{mp:.2f} MP")
+
+        for widget in self.suggestion_frame.winfo_children():
+            widget.destroy()
+
+        if w <= 0 or h <= 0:
+            self.status_label.configure(text="", text_color="gray")
+            self.detail_label.configure(text="Enter width and height to calculate.")
+            return
+
+        if mp >= target_mp:
+            self.mp_label.configure(text_color="#3ddc84")
+            self.status_label.configure(text=f"✅ Meets the {target_mp} MP target", text_color="#3ddc84")
+            self.detail_label.configure(text=f"{int(w)} × {int(h)} px comfortably clears the minimum — good to go.")
+        else:
+            self.mp_label.configure(text_color="#ff5555")
+            self.status_label.configure(text=f"❌ Below the {target_mp} MP target", text_color="#ff5555")
+            self.detail_label.configure(text=f"{int(w)} × {int(h)} px is short of {target_mp} MP by {target_mp - mp:.2f} MP.")
+
+            sizes = autofix_engine.suggest_sizes_for_target_mp(int(w), int(h), target_mp)
+            hint = ctk.CTkFrame(self.suggestion_frame, fg_color="#1f2b24", corner_radius=10, border_width=1, border_color="#2d5c43")
+            hint.pack(fill="x")
+            ctk.CTkLabel(hint, text="💡 Try one of these instead:", font=ctk.CTkFont(size=13, weight="bold"),
+                         text_color="#3ddc84").pack(anchor="w", padx=16, pady=(12, 6))
+            for s in sizes:
+                row = ctk.CTkFrame(hint, fg_color="transparent")
+                row.pack(fill="x", padx=16, pady=2)
+                ctk.CTkLabel(row, text=f"📐 {s.width} × {s.height} px", font=ctk.CTkFont(size=13, weight="bold")).pack(side="left")
+                ctk.CTkLabel(row, text=f"  ({s.megapixels} MP — {s.label})", text_color="gray", font=ctk.CTkFont(size=11)).pack(side="left")
+                ctk.CTkButton(row, text="Use this", width=80, height=24,
+                              command=lambda sw=s.width, sh=s.height: self._apply_suggestion(sw, sh)).pack(side="right")
+            ctk.CTkFrame(hint, fg_color="transparent", height=6).pack()
+
+    def _apply_suggestion(self, w, h):
+        self._updating = True
+        self.width_var.set(str(w))
+        self.height_var.set(str(h))
+        self._updating = False
+        self._recalculate()
+
+
 class AboutTab(ctk.CTkFrame):
     def __init__(self, master):
         super().__init__(master, fg_color="transparent")
@@ -586,6 +760,10 @@ TABS
 - PNG: analyze a single PNG (resolution, transparency, occupancy).
 - Photos: analyze a single JPG/PNG photo (sharpness, noise, exposure,
   composition).
+- Calculator: type any width/height in pixels (or use the Portrait/
+  Landscape buttons) and instantly see the megapixels and whether it
+  clears the 4MP minimum — plan your artwork size before you even open
+  Illustrator/Photoshop.
 - Batch Checker: analyze many files at once, export a CSV summary, and
   detect near-duplicate images in the batch.
 - Reports: view/save the last generated report as .txt or .json.
@@ -613,7 +791,7 @@ class App(ctk.CTk):
         self.tabview = ctk.CTkTabview(self)
         self.tabview.pack(fill="both", expand=True, padx=8, pady=8)
 
-        for name in ["Vector", "PNG", "Photos", "Batch Checker", "Reports", "Settings", "About", "Help"]:
+        for name in ["Vector", "PNG", "Photos", "Calculator", "Batch Checker", "Reports", "Settings", "About", "Help"]:
             self.tabview.add(name)
 
         self.vector_tab = BaseFileTab(
@@ -636,6 +814,9 @@ class App(ctk.CTk):
             raster_analysis.analyze_raster, "photo", self
         )
         self.photo_tab.pack(fill="both", expand=True)
+
+        self.calculator_tab = CalculatorTab(self.tabview.tab("Calculator"))
+        self.calculator_tab.pack(fill="both", expand=True)
 
         self.batch_tab = BatchTab(self.tabview.tab("Batch Checker"), self)
         self.batch_tab.pack(fill="both", expand=True)

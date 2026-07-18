@@ -64,6 +64,9 @@ Produces a clear **PASS / FAIL** per marketplace with the exact numbers — neve
 ### 🛠️ Auto-fix suggestions
 When a file falls short of the MP minimum, get an instant suggested resize with exact pixel dimensions — and a **Save As New File** button that writes the fix to a brand-new file. Your original is never touched or overwritten.
 
+### 📐 Size & megapixel calculator
+Plan a new artwork's dimensions before you even open Illustrator or Photoshop. Type a width/height (or tap Portrait/Landscape), and instantly see the resulting megapixels and whether it clears the 4MP minimum — with one-click suggested sizes if it doesn't.
+
 ### 📦 Batch checker
 - Analyze dozens of files in one run
 - Export a CSV summary for spreadsheet QA workflows
