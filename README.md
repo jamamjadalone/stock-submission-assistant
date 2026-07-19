@@ -148,15 +148,45 @@ python gui/app.py
 
 Full step-by-step PyInstaller instructions — hidden imports, one-file/no-console flags, icon setup, and a troubleshooting table — are in [`README-build.md`](README-build.md). Short version:
 
-```bat
+### 1. Install PyInstaller
+
+```bash
 pip install pyinstaller
-pyinstaller --name StockSubmissionAssistant --onefile --windowed ^
-  --add-data "data;data" --collect-all customtkinter ^
-  --hidden-import fitz --hidden-import cv2 gui\app.py
 ```
 
-> If `pyinstaller` is not recognized as a command, use `python -m PyInstaller` instead (same tool, doesn't depend on PATH).
+### 2. Build the EXE
 
+You can use either of the following commands from the project root directory.
+
+#### Method 1 (Standard)
+
+```bash
+pyinstaller --name StockSubmissionAssistant --onefile --windowed --add-data "data;data" --collect-all customtkinter --hidden-import fitz --hidden-import cv2 gui\app.py
+```
+
+#### Method 2 (If Method 1 Fails)
+
+If you get the following error:
+
+```text
+'pyinstaller' is not recognized as an internal or external command
+```
+
+use the command below instead. It uses the same PyInstaller tool and does not depend on your system's PATH configuration.
+
+```bash
+python -m PyInstaller --name StockSubmissionAssistant --onefile --windowed --add-data "data;data" --collect-all customtkinter --hidden-import fitz --hidden-import cv2 gui\app.py
+```
+
+### 3. Locate the EXE
+
+After the build completes successfully, the executable will be created in:
+
+```text
+dist\StockSubmissionAssistant.exe
+```
+
+You can now run `StockSubmissionAssistant.exe`.
 ## Project structure
 
 ```
