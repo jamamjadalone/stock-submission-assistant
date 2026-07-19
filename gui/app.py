@@ -559,18 +559,14 @@ class CalculatorTab(ctk.CTkFrame):
         self._orientation = "landscape"
         self.width_var.trace_add("write", lambda *a: self._recalculate())
         self.height_var.trace_add("write", lambda *a: self._recalculate())
-        self._set_orientation("landscape")
+        self._recalculate()
 
     def _set_orientation(self, mode):
-        self._orientation = mode
-        if mode == "portrait":
-            self.portrait_btn.configure(fg_color="#3ddc84", text_color="#101010", hover_color="#4de896")
-            self.landscape_btn.configure(fg_color="#2b2b2b", text_color="white", hover_color="#3a3a3a")
-            self._orient_to(portrait=True)
-        else:
-            self.landscape_btn.configure(fg_color="#3ddc84", text_color="#101010", hover_color="#4de896")
-            self.portrait_btn.configure(fg_color="#2b2b2b", text_color="white", hover_color="#3a3a3a")
-            self._orient_to(portrait=False)
+        """Called ONLY when the user explicitly clicks a Portrait/Landscape
+        button — this is a manual override that swaps W/H to match. Typing
+        new numbers afterward will auto-detect and re-highlight based on
+        whatever's actually in the fields (see _update_orientation_display)."""
+        self._orient_to(portrait=(mode == "portrait"))
 
     def _orient_to(self, portrait: bool):
         try:
@@ -584,6 +580,19 @@ class CalculatorTab(ctk.CTkFrame):
             self._swap()
         else:
             self._recalculate()
+
+    def _update_orientation_display(self, w, h):
+        """Auto-detect orientation from whatever the user actually typed —
+        no click required. Square (w == h) defaults to showing Landscape
+        as the neutral highlight."""
+        is_portrait = h > w
+        self._orientation = "portrait" if is_portrait else "landscape"
+        if is_portrait:
+            self.portrait_btn.configure(fg_color="#3ddc84", text_color="#101010", hover_color="#4de896")
+            self.landscape_btn.configure(fg_color="#2b2b2b", text_color="white", hover_color="#3a3a3a")
+        else:
+            self.landscape_btn.configure(fg_color="#3ddc84", text_color="#101010", hover_color="#4de896")
+            self.portrait_btn.configure(fg_color="#2b2b2b", text_color="white", hover_color="#3a3a3a")
 
     def _swap(self):
         w, h = self.width_var.get(), self.height_var.get()
@@ -604,6 +613,10 @@ class CalculatorTab(ctk.CTkFrame):
             self.status_label.configure(text="Enter valid numbers", text_color="gray")
             self.detail_label.configure(text="")
             return
+
+        # Auto-detect + highlight orientation from the actual typed pixels —
+        # this runs on every keystroke, no button click needed.
+        self._update_orientation_display(w, h)
 
         target_str = self.target_var.get()
         target_mp = float(target_str.split(" ")[0])
